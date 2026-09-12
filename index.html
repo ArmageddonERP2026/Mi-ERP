@@ -223,5 +223,106 @@ render();
 load();
 setInterval(load,5000);
 </script>
+  
+<!-- UPGRADE MI ERP MATRIZ V2: PROGRAMA + SET UP + TIEMPOS MUERTOS -->
+<style>
+.extraGrid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
+.xcard{background:#fff;border:1px solid #d8e5e0;border-radius:12px;padding:12px}
+.xcard h3{margin:0 0 8px;font-size:16px}
+.xrow{display:flex;gap:6px;flex-wrap:wrap}
+.xbtn{border:0;border-radius:8px;padding:8px 10px;font-weight:bold}
+.xpri{background:#087356;color:#fff}.xsoft{background:#edf4f1;color:#21483d}.xdanger{background:#c43d49;color:#fff}
+.xinp,.xsel{width:100%;padding:8px;border:1px solid #cedbd6;border-radius:8px;margin:4px 0 8px;background:#fff}
+.xmuted{font-size:11px;color:#6d8079}
+@media(max-width:850px){.extraGrid{grid-template-columns:1fr}}
+</style>
+
+<script>
+(function(){
+const M=machines.map(x=>x[0]);
+let SCH=JSON.parse(localStorage.getItem('matriz_schedule')||'[]');
+let SU=JSON.parse(localStorage.getItem('matriz_setup')||'[]');
+let DT=JSON.parse(localStorage.getItem('matriz_dt')||'[]');
+
+function saveAll(){
+ localStorage.setItem('matriz_schedule',JSON.stringify(SCH));
+ localStorage.setItem('matriz_setup',JSON.stringify(SU));
+ localStorage.setItem('matriz_dt',JSON.stringify(DT));
+}
+function addTab(id,label){
+ const tabs=document.querySelector('.tabs');
+ if(!tabs||document.querySelector('[data-v="'+id+'"]')) return;
+ const b=document.createElement('button'); b.dataset.v=id; b.textContent=label;
+ b.onclick=()=>{document.querySelectorAll('.tabs button').forEach(x=>x.classList.remove('on'));document.querySelectorAll('.view').forEach(x=>x.classList.remove('on'));b.classList.add('on');document.getElementById(id).classList.add('on')};
+ tabs.appendChild(b);
+}
+function addView(id,title){
+ if(document.getElementById(id)) return;
+ const s=document.createElement('section'); s.id=id; s.className='view';
+ s.innerHTML='<h2>'+title+'</h2><div id="'+id+'Box"></div>';
+ document.querySelector('main').appendChild(s);
+}
+addTab('programa','Programa');addTab('setup2','Set Up');
+addView('programa','Programa de ProducciÃ³n');addView('setup2','Set Up');
+
+function renderPrograma(){
+ const box=document.getElementById('programaBox'); if(!box)return;
+ box.innerHTML='<div class="xcard" style="margin-bottom:10px"><div class="xrow"><button class="xbtn xpri" id="addSch">+ Nueva orden</button></div></div><div class="extraGrid">'+
+ (SCH.length?SCH.map((x,i)=>'<div class="xcard"><h3>'+x.machine+' Â· '+x.order+'</h3><div class="xmuted">'+x.product+' Â· '+x.qty+' cajas</div><div class="xrow" style="margin-top:8px"><button class="xbtn xpri" onclick="window.startSch('+i+')">Iniciar</button><button class="xbtn xsoft" onclick="window.endSch('+i+')">Terminar</button><button class="xbtn xdanger" onclick="window.delSch('+i+')">Borrar</button></div><div class="xmuted" style="margin-top:6px">Estado: '+x.status+'</div></div>').join(''):'<div class="xcard">Sin Ã³rdenes programadas.</div>')+'</div>';
+ document.getElementById('addSch').onclick=()=>{
+   const machine=prompt('MÃ¡quina','920'); if(!machine)return;
+   const order=prompt('Orden','OT-'+Date.now().toString().slice(-5))||'';
+   const product=prompt('Producto','Caja')||'';
+   const qty=prompt('Cantidad','10000')||'';
+   SCH.unshift({id:'sch_'+Date.now(),machine,order,product,qty,status:'Programada',created:new Date().toISOString()});
+   saveAll();renderPrograma();
+ };
+}
+window.startSch=i=>{SCH[i].status='En proceso';SCH[i].started=new Date().toISOString();saveAll();renderPrograma()};
+window.endSch=i=>{SCH[i].status='Terminada';SCH[i].ended=new Date().toISOString();saveAll();renderPrograma()};
+window.delSch=i=>{SCH.splice(i,1);saveAll();renderPrograma()};
+
+function renderSetup2(){
+ const box=document.getElementById('setup2Box'); if(!box)return;
+ box.innerHTML='<div class="extraGrid">'+M.map(m=>{
+   const i=SU.findIndex(x=>x.machine===m&&x.active),x=i>=0?SU[i]:null;
+   return '<div class="xcard"><h3>'+m+'</h3>'+(x?
+   '<div class="xmuted">Inicio: '+new Date(x.start).toLocaleTimeString()+'</div><button class="xbtn xpri" style="margin-top:8px" onclick="window.finishSU('+i+')">Finalizar Set Up</button>':
+   '<button class="xbtn xsoft" onclick="window.startSU(\''+m.replace(/'/g,"\\'")+'\')">Iniciar Set Up</button>')+'</div>';
+ }).join('')+'</div><div class="xcard" style="margin-top:10px"><h3>Historial Set Up</h3>'+SU.filter(x=>!x.active).slice(0,20).map(x=>'<div class="xmuted">'+x.machine+' Â· '+Math.max(0,Math.round((x.end-x.start)/60000))+' min Â· '+new Date(x.end).toLocaleString()+'</div>').join('')+'</div>';
+}
+window.startSU=m=>{if(!SU.find(x=>x.machine===m&&x.active))SU.unshift({id:'su_'+Date.now(),machine:m,start:Date.now(),active:true});saveAll();renderSetup2()};
+window.finishSU=i=>{SU[i].end=Date.now();SU[i].active=false;saveAll();renderSetup2()};
+
+function upgradeDT(){
+ const s=document.getElementById('dt'); if(!s)return;
+ s.innerHTML='<h2>Tiempos Muertos</h2><div class="notice">Concepto + Atribuible / No atribuible. El sistema detecta paradas reportadas por el sensor.</div><div id="dtLive" class="extraGrid"></div><div class="xcard" style="margin-top:10px"><h3>Historial</h3><div id="dtHist"></div></div>';
+ renderDT2();
+}
+function renderDT2(){
+ const live=document.getElementById('dtLive'); if(!live)return;
+ const causes=['Falta material','Atasco','Ajuste mÃ¡quina','Calidad','Mantenimiento','Personal','Cambio de orden','Otro'];
+ M.forEach(m=>{
+   const x=st(m);
+   if(x.state==='PARADA'&&!DT.find(d=>d.machine===m&&d.active))DT.unshift({id:'dt_'+Date.now()+'_'+m,machine:m,start:Date.now(),cause:'',classif:'',active:true});
+ });
+ saveAll();
+ live.innerHTML=M.map(m=>{
+   const i=DT.findIndex(d=>d.machine===m&&d.active),d=i>=0?DT[i]:null;
+   return '<div class="xcard"><h3>'+m+'</h3>'+(d?
+   '<select class="xsel" onchange="window.setCause('+i+',this.value)"><option value="">Selecciona concepto</option>'+causes.map(c=>'<option '+(d.cause===c?'selected':'')+'>'+c+'</option>').join('')+'</select><div class="xrow"><button class="xbtn '+(d.classif==='Atribuible'?'xpri':'xsoft')+'" onclick="window.setClass('+i+',\'Atribuible\')">Atribuible</button><button class="xbtn '+(d.classif==='No atribuible'?'xpri':'xsoft')+'" onclick="window.setClass('+i+',\'No atribuible\')">No atribuible</button></div><button class="xbtn xpri" style="width:100%;margin-top:8px" onclick="window.finishDT2('+i+')">Finalizar paro</button>':
+   '<div class="xmuted">Sin paro activo.</div>')+'</div>';
+ }).join('');
+ document.getElementById('dtHist').innerHTML=DT.filter(d=>!d.active).slice(0,30).map(d=>'<div class="xmuted">'+new Date(d.end).toLocaleString()+' Â· '+d.machine+' Â· '+d.cause+' Â· '+d.classif+' Â· '+Math.max(0,Math.round((d.end-d.start)/60000))+' min</div>').join('')||'<div class="xmuted">Sin registros.</div>';
+}
+window.setCause=(i,v)=>{DT[i].cause=v;saveAll()};
+window.setClass=(i,v)=>{DT[i].classif=v;saveAll();renderDT2()};
+window.finishDT2=i=>{if(!DT[i].cause||!DT[i].classif){alert('Selecciona concepto y clasificaciÃ³n');return}DT[i].end=Date.now();DT[i].active=false;saveAll();renderDT2()};
+
+const oldRender=window.render;
+window.render=function(){oldRender&&oldRender();renderPrograma();renderSetup2();renderDT2()};
+upgradeDT();renderPrograma();renderSetup2();
+})();
+</script>
 </body>
 </html>
