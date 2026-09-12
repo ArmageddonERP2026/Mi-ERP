@@ -1,3 +1,227 @@
-<!doctype html><html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>MI ERP Matriz V2</title>
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>MI ERP Matriz V2</title>
 <style>
-*{box-sizing:border-box}body{margin:0;font-family:Arial,sans-serif;background:#eef3f1;color:#18352d}header{position:sticky;top:0;z-index:20;background:#073c31;color:#fff;padding:12px}h1{font-size:19px;margin:0}.sub{font-size:11px;opacity:.75}.tabs{display:flex;gap:6px;overflow:auto;margin-top:10px}.tabs button{white-space:nowrap;border:0;border-radius:8px;padding:8px;background:#ffffff18;color:#fff;font-weight:700}.tabs button.on{background:#fff;color:#073c31}main{padding:12px;max-width:1200px;margin:auto}.view{display:none}.view.on{display:block}.kpis,.machines,.oeegrid,.setupgrid,.dtgrid{display:grid;gap:10px}.kpis{grid-template-columns:repeat(6,1fr)}.machines,.oeegrid,.setupgrid,.dtgrid{grid-template-columns:repeat(3,1fr)}.card,.kpi{background:#fff;border:1px solid #d8e5e0;border-radius:14px;padding:12px;box-shadow:0 5px 18px #0000000b}.kpi small{color:#72857e;font-weight:700}.kpi b{display:block;font-size:24px;margin-top:3px}.machine{border-top:4px solid #82918c}.machine.run{border-top-color:#12a873}.machine.stop{border-top-color:#c43d49}.row{display:flex;justify-content:space-between;gap:8px;align-items:center}.badge{font-size:10px;font-weight:800;padding:5px 8px;border-radius:999px}.runb{background:#dff7ec;color:#087356}.stopb{background:#fde8eb;color:#a42835}.waitb{background:#edf1ef;color:#5f706a}.stats{display:grid;grid-template-columns:repeat(3,1fr);gap:7px;margin-top:10px}.stat{background:#f5f8f7;border-radius:9px;padding:8px;text-align:center}.stat b{display:block;font-size:18px}.stat small{color:#71837c}.bar{height:7px;background:#e5ece9;border-radius:10px;overflow:hidden;margin-top:8px}.bar i{display:block;height:100%;background:#12a873}.btn{border:0;border-radius:8px;padding:8px 10px;font-weight:800}.primary{background:#087356;color:#fff}.danger{background:#c43d49;color:#fff}.soft{background:#edf4f1;color:#21483d}.actions{display:flex;gap:6px;flex-wrap:wrap;margin-top:9px}.panel{margin-bottom:10px}.scroll{overflow:auto}table{width:100%;border-collapse:collapse;min-width:760px;font-size:11px}th,td{padding:8px;border-bottom:1px solid #e4ece9;text-align:left}th{color:#60736c;background:#f7f9f8}.title{display:flex;justify-content:space-between;align-items:center;margin-bottom:10px}.title h2{margin:0;font-size:19px}.muted{color:#6d8079;font-size:11px}.notice{padding:9px;background:#fff4d9;border-radius:9px;color:#805b00;font-size:11px}.field{margin:8px 0}.field label{display:block;font-size:10px;color:#6b7d76;font-weight:800;margin-bottom:4px}.field select,.field input{width:100%;padding:9px;border:1px solid #cedbd6;border-radius:8px;background:#fff}.ring{--p:0;width:86px;height:86px;margin:8px auto;border-radius:50%;background:conic-gradient(#12a873 calc(var(--p)*1%),#e6ece9 0);display:grid
+*{box-sizing:border-box}body{margin:0;font-family:Arial;background:#eef3f1;color:#18352d}
+header{background:#073c31;color:white;padding:12px;position:sticky;top:0;z-index:10}
+h1{margin:0;font-size:19px}.sub{font-size:11px;opacity:.8}
+.tabs{display:flex;gap:6px;overflow:auto;margin-top:10px}
+.tabs button{border:0;border-radius:8px;padding:8px 10px;background:#ffffff1c;color:white;font-weight:bold;white-space:nowrap}
+.tabs button.on{background:white;color:#073c31}
+main{padding:12px}.view{display:none}.view.on{display:block}
+.kpis,.grid{display:grid;gap:10px}.kpis{grid-template-columns:repeat(5,1fr)}.grid{grid-template-columns:repeat(3,1fr)}
+.card,.kpi{background:white;border:1px solid #d8e5e0;border-radius:12px;padding:12px}
+.kpi small{color:#718079}.kpi b{display:block;font-size:24px}
+.row{display:flex;justify-content:space-between;gap:8px;align-items:center}
+.badge{font-size:10px;font-weight:bold;padding:5px 8px;border-radius:999px}
+.run{background:#dff7ec;color:#087356}.stop{background:#fde8eb;color:#a42835}.wait{background:#edf1ef;color:#596b64}
+.stats{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;margin-top:9px}
+.stat{background:#f5f8f7;border-radius:8px;padding:8px;text-align:center}
+.stat b{display:block;font-size:18px}.stat small{font-size:10px;color:#718079}
+table{width:100%;border-collapse:collapse;background:white;font-size:12px}
+th,td{padding:8px;border-bottom:1px solid #e5ece8;text-align:left}.scroll{overflow:auto}
+.conn{font-size:10px;font-weight:bold;padding:5px 8px;border-radius:999px;background:#8c3843}.conn.ok{background:#087356}
+.notice{background:#fff3d3;padding:10px;border-radius:8px;font-size:11px;margin-bottom:10px}
+.btn{border:0;border-radius:8px;padding:8px 10px;font-weight:bold}.primary{background:#087356;color:white}.soft{background:#edf4f1;color:#21483d}
+@media(max-width:850px){.kpis{grid-template-columns:repeat(2,1fr)}.grid{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+
+<header>
+<div class="row">
+<div><h1>MI ERP Matriz V2</h1><div class="sub">Sistema nuevo · API Matriz V2</div></div>
+<div id="conn" class="conn">API...</div>
+</div>
+<div class="tabs">
+<button class="on" data-v="dash">Dashboard</button>
+<button data-v="machines">Máquinas</button>
+<button data-v="prod">Producción</button>
+<button data-v="alerts">Alertas</button>
+<button data-v="dt">Tiempos Muertos</button>
+<button data-v="oee">OEE</button>
+</div>
+</header>
+
+<main>
+
+<section id="dash" class="view on">
+<h2>Resumen de planta</h2>
+<div class="kpis">
+<div class="kpi"><small>Máquinas</small><b>9</b></div>
+<div class="kpi"><small>Corriendo</small><b id="runK">0</b></div>
+<div class="kpi"><small>Paradas</small><b id="stopK">0</b></div>
+<div class="kpi"><small>Conteo total</small><b id="countK">0</b></div>
+<div class="kpi"><small>GPM total</small><b id="gpmK">0</b></div>
+</div>
+<div id="dashGrid" class="grid" style="margin-top:10px"></div>
+</section>
+
+<section id="machines" class="view">
+<h2>Máquinas</h2>
+<div id="machineGrid" class="grid"></div>
+</section>
+
+<section id="prod" class="view">
+<h2>Producción</h2>
+<div class="scroll">
+<table>
+<thead><tr><th>Máquina</th><th>Estado</th><th>Conteo</th><th>GPM</th><th>Meta</th><th>Eficiencia</th></tr></thead>
+<tbody id="prodBody"></tbody>
+</table>
+</div>
+</section>
+
+<section id="alerts" class="view">
+<h2>Alertas</h2>
+<div id="alertsBox"></div>
+</section>
+
+<section id="dt" class="view">
+<h2>Tiempos Muertos</h2>
+<div class="notice">Aquí quedan los paros detectados por el sensor. Clasificación: Atribuible / No atribuible.</div>
+<div id="dtBox" class="grid"></div>
+</section>
+
+<section id="oee" class="view">
+<h2>OEE</h2>
+<div class="notice">OEE = Disponibilidad × Rendimiento × Calidad. Calidad queda en 100% hasta integrar rechazo.</div>
+<div id="oeeBox" class="grid"></div>
+</section>
+
+</main>
+
+<script>
+const API="https://mi-erp-matriz-v2-api-git.luck-tang.workers.dev";
+
+const machines=[
+["920",300],["1224",250],["1628",150],
+["Flexo 1",300],["Flexo 2",300],["Flexo 3",300],
+["Flexo 4",300],["Flexo 5",300],["Pegadora Universal",280]
+];
+
+let states={};
+
+document.querySelectorAll(".tabs button").forEach(b=>{
+  b.onclick=()=>{
+    document.querySelectorAll(".tabs button").forEach(x=>x.classList.remove("on"));
+    document.querySelectorAll(".view").forEach(x=>x.classList.remove("on"));
+    b.classList.add("on");
+    document.getElementById(b.dataset.v).classList.add("on");
+  };
+});
+
+function st(name){
+  return states[name]||{machine:name,state:"SIN_DATOS",count:0,gpm:0};
+}
+
+function meta(name){
+  return machines.find(x=>x[0]===name)?.[1]||0;
+}
+
+function eff(x){
+  const m=meta(x.machine);
+  return m?Math.round((Number(x.gpm)||0)/m*100):0;
+}
+
+function badge(s){
+  return s==="CORRIENDO"?"run":s==="PARADA"?"stop":"wait";
+}
+
+function card(x){
+  return `
+  <div class="card">
+    <div class="row">
+      <b>${x.machine}</b>
+      <span class="badge ${badge(x.state)}">${x.state}</span>
+    </div>
+    <div class="stats">
+      <div class="stat"><b>${x.count||0}</b><small>Conteo</small></div>
+      <div class="stat"><b>${x.gpm||0}</b><small>GPM</small></div>
+      <div class="stat"><b>${eff(x)}%</b><small>Efic.</small></div>
+    </div>
+  </div>`;
+}
+
+function render(){
+  const a=machines.map(m=>st(m[0]));
+
+  runK.textContent=a.filter(x=>x.state==="CORRIENDO").length;
+  stopK.textContent=a.filter(x=>x.state==="PARADA").length;
+  countK.textContent=a.reduce((z,x)=>z+(Number(x.count)||0),0);
+  gpmK.textContent=a.reduce((z,x)=>z+(Number(x.gpm)||0),0);
+
+  dashGrid.innerHTML=a.map(card).join("");
+  machineGrid.innerHTML=a.map(card).join("");
+
+  prodBody.innerHTML=a.map(x=>`
+    <tr>
+      <td>${x.machine}</td>
+      <td>${x.state}</td>
+      <td>${x.count||0}</td>
+      <td>${x.gpm||0}</td>
+      <td>${meta(x.machine)}</td>
+      <td>${eff(x)}%</td>
+    </tr>`).join("");
+
+  const alerts=a.filter(x=>x.state==="PARADA"||x.state==="SIN_DATOS"||(x.state==="CORRIENDO"&&eff(x)<50));
+
+  alertsBox.innerHTML=alerts.length
+    ?alerts.map(x=>`<div class="card" style="margin-bottom:8px"><b>${x.machine}</b> · ${x.state==="CORRIENDO"?"BAJA VELOCIDAD":x.state}</div>`).join("")
+    :`<div class="card">Sin alertas activas.</div>`;
+
+  dtBox.innerHTML=a.map(x=>`
+    <div class="card">
+      <div class="row"><b>${x.machine}</b><span class="badge ${badge(x.state)}">${x.state}</span></div>
+      ${x.state==="PARADA"
+        ?`<p>Paro detectado automáticamente.</p>
+          <button class="btn soft">Atribuible</button>
+          <button class="btn soft">No atribuible</button>`
+        :`<p style="font-size:12px;color:#718079">Sin paro activo.</p>`}
+    </div>`).join("");
+
+  oeeBox.innerHTML=a.map(x=>{
+    const disponibilidad=x.state==="CORRIENDO"?100:x.state==="PARADA"?80:0;
+    const rendimiento=Math.min(100,eff(x));
+    const calidad=100;
+    const oee=Math.round(disponibilidad*rendimiento*calidad/10000);
+
+    return `
+    <div class="card">
+      <div class="row"><b>${x.machine}</b><b>${oee}%</b></div>
+      <div class="stats">
+        <div class="stat"><b>${disponibilidad}%</b><small>Disp.</small></div>
+        <div class="stat"><b>${rendimiento}%</b><small>Rend.</small></div>
+        <div class="stat"><b>${calidad}%</b><small>Calidad</small></div>
+      </div>
+    </div>`;
+  }).join("");
+}
+
+async function load(){
+  try{
+    const r=await fetch(API+"/api/states",{cache:"no-store"});
+    const d=await r.json();
+    if(!r.ok||!d.ok)throw 0;
+
+    d.states.forEach(x=>states[x.machine]=x);
+
+    conn.textContent="API CONECTADA";
+    conn.className="conn ok";
+
+    render();
+  }catch(e){
+    conn.textContent="SIN API";
+    conn.className="conn";
+  }
+}
+
+render();
+load();
+setInterval(load,5000);
+</script>
+</body>
+</html>
