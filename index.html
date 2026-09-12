@@ -324,5 +324,13 @@ window.render=function(){oldRender&&oldRender();renderPrograma();renderSetup2();
 upgradeDT();renderPrograma();renderSetup2();
 })();
 </script>
+  <script>
+if(!document.getElementById('dtBox')){
+  const d=document.createElement('div');
+  d.id='dtBox';
+  d.style.display='none';
+  document.getElementById('dt')?.appendChild(d);
+}
+  </script>
 </body>
 </html>
