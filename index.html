@@ -5,36 +5,258 @@
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>MI ERP Matriz V2</title>
 <style>
-*{box-sizing:border-box}body{margin:0;font-family:Arial;background:#eef3f1;color:#18352d}
+*{box-sizing:border-box}
+body{margin:0;font-family:Arial,sans-serif;background:#eef3f1;color:#18352d}
 header{background:#073c31;color:white;padding:12px;position:sticky;top:0;z-index:10}
-h1{margin:0;font-size:19px}.sub{font-size:11px;opacity:.8}
+h1{margin:0;font-size:19px}
+.sub{font-size:11px;opacity:.8}
 .tabs{display:flex;gap:6px;overflow:auto;margin-top:10px}
 .tabs button{border:0;border-radius:8px;padding:8px 10px;background:#ffffff1c;color:white;font-weight:bold;white-space:nowrap}
 .tabs button.on{background:white;color:#073c31}
-main{padding:12px}.view{display:none}.view.on{display:block}
-.kpis,.grid{display:grid;gap:10px}.kpis{grid-template-columns:repeat(5,1fr)}.grid{grid-template-columns:repeat(3,1fr)}
-.card,.kpi{background:white;border:1px solid #d8e5e0;border-radius:12px;padding:12px}
+main{padding:12px}
+.view{display:none}.view.on{display:block}
+.kpis,.grid,.extraGrid{display:grid;gap:10px}
+.kpis{grid-template-columns:repeat(5,1fr)}
+.grid,.extraGrid{grid-template-columns:repeat(3,1fr)}
+.card,.kpi,.xcard{background:white;border:1px solid #d8e5e0;border-radius:12px;padding:12px}
 .kpi small{color:#718079}.kpi b{display:block;font-size:24px}
-.row{display:flex;justify-content:space-between;gap:8px;align-items:center}
+.row,.xrow{display:flex;justify-content:space-between;gap:8px;align-items:center;flex-wrap:wrap}
 .badge{font-size:10px;font-weight:bold;padding:5px 8px;border-radius:999px}
 .run{background:#dff7ec;color:#087356}.stop{background:#fde8eb;color:#a42835}.wait{background:#edf1ef;color:#596b64}
 .stats{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;margin-top:9px}
 .stat{background:#f5f8f7;border-radius:8px;padding:8px;text-align:center}
 .stat b{display:block;font-size:18px}.stat small{font-size:10px;color:#718079}
 table{width:100%;border-collapse:collapse;background:white;font-size:12px}
-th,td{padding:8px;border-bottom:1px solid #e5ece8;text-align:left}.scroll{overflow:auto}
-.conn{font-size:10px;font-weight:bold;padding:5px 8px;border-radius:999px;background:#8c3843}.conn.ok{background:#087356}
+th,td{padding:8px;border-bottom:1px solid #e5ece8;text-align:left}
+.scroll{overflow:auto}
+.conn{font-size:10px;font-weight:bold;padding:5px 8px;border-radius:999px;background:#8c3843}
+.conn.ok{background:#087356}
 .notice{background:#fff3d3;padding:10px;border-radius:8px;font-size:11px;margin-bottom:10px}
-.btn{border:0;border-radius:8px;padding:8px 10px;font-weight:bold}.primary{background:#087356;color:white}.soft{background:#edf4f1;color:#21483d}
-@media(max-width:850px){.kpis{grid-template-columns:repeat(2,1fr)}.grid{grid-template-columns:1fr}}
+.btn,.xbtn{border:0;border-radius:8px;padding:8px 10px;font-weight:bold}
+.primary,.xpri{background:#087356;color:white}
+.soft,.xsoft{background:#edf4f1;color:#21483d}
+.xdanger{background:#c43d49;color:white}
+.xsel{width:100%;padding:8px;border:1px solid #cedbd6;border-radius:8px;margin:4px 0 8px;background:white}
+.xmuted{font-size:11px;color:#6d8079}
+@media(max-width:850px){.kpis{grid-template-columns:repeat(2,1fr)}.grid,.extraGrid{grid-template-columns:1fr}}
 </style>
 </head>
 <body>
-
 <header>
 <div class="row">
-<div><h1>MI ERP Matriz V2</h1><div class="sub">Sistema nuevo · API Matriz V2</div></div>
+<div><h1>MI ERP Matriz V2</h1><div class="sub">Sistema nuevo Â· API Matriz V2</div></div>
 <div id="conn" class="conn">API...</div>
+</div>
+<div class="tabs">
+<button class="on" data-v="dash">Dashboard</button>
+<button data-v="machines">MÃ¡quinas</button>
+<button data-v="prod">ProducciÃ³n</button>
+<button data-v="alerts">Alertas</button>
+<button data-v="dt">Tiempos Muertos</button>
+<button data-v="oee">OEE</button>
+<button data-v="programa">Programa</button>
+<button data-v="setup">Set Up</button>
+</div>
+</header>
+
+<main>
+<section id="dash" class="view on">
+<h2>Resumen de planta</h2>
+<div class="kpis">
+<div class="kpi"><small>MÃ¡quinas</small><b>9</b></div>
+<div class="kpi"><small>Corriendo</small><b id="runK">0</b></div>
+<div class="kpi"><small>Paradas</small><b id="stopK">0</b></div>
+<div class="kpi"><small>Conteo total</small><b id="countK">0</b></div>
+<div class="kpi"><small>GPM total</small><b id="gpmK">0</b></div>
+</div>
+<div id="dashGrid" class="grid" style="margin-top:10px"></div>
+</section>
+
+<section id="machines" class="view"><h2>MÃ¡quinas</h2><div id="machineGrid" class="grid"></div></section>
+
+<section id="prod" class="view">
+<h2>ProducciÃ³n</h2>
+<div class="scroll">
+<table>
+<thead><tr><th>MÃ¡quina</th><th>Estado</th><th>Conteo</th><th>GPM</th><th>Meta</th><th>Eficiencia</th></tr></thead>
+<tbody id="prodBody"></tbody>
+</table>
+</div>
+</section>
+
+<section id="alerts" class="view"><h2>Alertas</h2><div id="alertsBox"></div></section>
+
+<section id="dt" class="view">
+<h2>Tiempos Muertos</h2>
+<div class="notice">Concepto + Atribuible / No atribuible. El paro cerrado no vuelve a abrirse hasta que la mÃ¡quina regrese a CORRIENDO.</div>
+<div id="dtLive" class="extraGrid"></div>
+<div class="xcard" style="margin-top:10px"><h3>Historial</h3><div id="dtHist"></div></div>
+<div id="dtBox" style="display:none"></div>
+</section>
+
+<section id="oee" class="view">
+<h2>OEE</h2>
+<div class="notice">OEE = Disponibilidad Ã— Rendimiento Ã— Calidad. Calidad queda en 100% hasta integrar rechazo.</div>
+<div id="oeeBox" class="grid"></div>
+</section>
+
+<section id="programa" class="view">
+<h2>Programa de ProducciÃ³n</h2>
+<div class="xcard" style="margin-bottom:10px"><button class="xbtn xpri" id="addSch">+ Nueva orden</button></div>
+<div id="programaBox" class="extraGrid"></div>
+</section>
+
+<section id="setup" class="view">
+<h2>Set Up</h2>
+<div id="setupBox" class="extraGrid"></div>
+<div class="xcard" style="margin-top:10px"><h3>Historial Set Up</h3><div id="setupHist"></div></div>
+</section>
+</main>
+
+<script>
+const API="https://mi-erp-matriz-v2-api-git.luck-tang.workers.dev";
+const machines=[
+["920",300],["1224",250],["1628",150],
+["Flexo 1",300],["Flexo 2",300],["Flexo 3",300],
+["Flexo 4",300],["Flexo 5",300],["Pegadora Universal",280]
+];
+let states={};
+let prevStates={};
+let SCH=JSON.parse(localStorage.getItem('matriz_schedule')||'[]');
+let SU=JSON.parse(localStorage.getItem('matriz_setup')||'[]');
+let DT=JSON.parse(localStorage.getItem('matriz_dt')||'[]');
+
+function saveAll(){
+ localStorage.setItem('matriz_schedule',JSON.stringify(SCH));
+ localStorage.setItem('matriz_setup',JSON.stringify(SU));
+ localStorage.setItem('matriz_dt',JSON.stringify(DT));
+}
+function st(name){return states[name]||{machine:name,state:"SIN_DATOS",count:0,gpm:0}}
+function meta(name){return machines.find(x=>x[0]===name)?.[1]||0}
+function eff(x){const m=meta(x.machine);return m?Math.round((Number(x.gpm)||0)/m*100):0}
+function badge(s){return s==="CORRIENDO"?"run":s==="PARADA"?"stop":"wait"}
+
+function safeId(s){return String(s).replace(/[^a-zA-Z0-9_-]/g,'_')}
+function showView(id){
+  document.querySelectorAll(".tabs button").forEach(x=>x.classList.toggle("on",x.dataset.v===id));
+  document.querySelectorAll(".view").forEach(x=>x.classList.toggle("on",x.id===id));
+}
+document.querySelectorAll(".tabs button").forEach(b=>{
+ b.onclick=()=>showView(b.dataset.v);
+});
+
+function card(x,where=""){
+ return `<div class="card" id="${where==='machines'?'machine_'+safeId(x.machine):''}"><div class="row"><b>${x.machine}</b><span class="badge ${badge(x.state)}">${x.state}</span></div>
+ <div class="stats"><div class="stat"><b>${x.count||0}</b><small>Conteo</small></div><div class="stat"><b>${x.gpm||0}</b><small>GPM</small></div><div class="stat"><b>${eff(x)}%</b><small>Efic.</small></div></div></div>`;
+}
+
+function renderCore(){
+ const a=machines.map(m=>st(m[0]));
+ runK.textContent=a.filter(x=>x.state==="CORRIENDO").length;
+ stopK.textContent=a.filter(x=>x.state==="PARADA").length;
+ countK.textContent=a.reduce((z,x)=>z+(Number(x.count)||0),0);
+ gpmK.textContent=a.reduce((z,x)=>z+(Number(x.gpm)||0),0);
+ dashGrid.innerHTML=a.map(x=>card(x,"dash")).join("");
+ machineGrid.innerHTML=a.map(x=>card(x,"machines")).join("");
+ prodBody.innerHTML=a.map(x=>`<tr><td>${x.machine}</td><td>${x.state}</td><td>${x.count||0}</td><td>${x.gpm||0}</td><td>${meta(x.machine)}</td><td>${eff(x)}%</td></tr>`).join("");
+ const alerts=a.filter(x=>x.state==="PARADA"||x.state==="SIN_DATOS"||(x.state==="CORRIENDO"&&eff(x)<50));
+ alertsBox.innerHTML=alerts.length?alerts.map(x=>`<div class="card" style="margin-bottom:8px"><b>${x.machine}</b> Â· ${x.state==="CORRIENDO"?"BAJA VELOCIDAD":x.state}</div>`).join(""):`<div class="card">Sin alertas activas.</div>`;
+ oeeBox.innerHTML=a.map(x=>{
+   const disp=x.state==="CORRIENDO"?100:x.state==="PARADA"?80:0;
+   const perf=Math.min(100,eff(x)),qual=100,oee=Math.round(disp*perf*qual/10000);
+   return `<div class="card"><div class="row"><b>${x.machine}</b><b>${oee}%</b></div><div class="stats"><div class="stat"><b>${disp}%</b><small>Disp.</small></div><div class="stat"><b>${perf}%</b><small>Rend.</small></div><div class="stat"><b>${qual}%</b><small>Calidad</small></div></div></div>`;
+ }).join("");
+}
+
+function renderDT(){
+ const M=machines.map(x=>x[0]),causes=['Falta material','Atasco','Ajuste mÃ¡quina','Calidad','Mantenimiento','Personal','Cambio de orden','Otro'];
+ M.forEach(m=>{
+   const x=st(m);
+   const prev=prevStates[m];
+   if(x.state!=='PARADA') localStorage.removeItem('dt_ack_'+m);
+
+   const transitionedToStop = x.state==='PARADA' && prev && prev!=='PARADA';
+   const firstKnownStop = x.state==='PARADA' && !prev;
+
+   if((transitionedToStop || firstKnownStop) &&
+      localStorage.getItem('dt_ack_'+m)!=='1' &&
+      !DT.find(d=>d.machine===m&&d.active)){
+     DT.unshift({id:'dt_'+Date.now()+'_'+m,machine:m,start:Date.now(),cause:'',classif:'',active:true});
+     showView('dt');
+     setTimeout(()=>{
+       const el=[...document.querySelectorAll('#dtLive .xcard')].find(c=>c.querySelector('h3')?.textContent===m);
+       el?.scrollIntoView({behavior:'smooth',block:'center'});
+     },50);
+   }
+ });
+ saveAll();
+ dtLive.innerHTML=M.map(m=>{
+   const i=DT.findIndex(d=>d.machine===m&&d.active),d=i>=0?DT[i]:null;
+   return `<div class="xcard"><h3>${m}</h3>${d?
+   `<select class="xsel" onchange="setCause(${i},this.value)"><option value="">Selecciona concepto</option>${causes.map(c=>`<option ${d.cause===c?'selected':''}>${c}</option>`).join('')}</select>
+   <div class="xrow"><button class="xbtn ${d.classif==='Atribuible'?'xpri':'xsoft'}" onclick="setClass(${i},'Atribuible')">Atribuible</button><button class="xbtn ${d.classif==='No atribuible'?'xpri':'xsoft'}" onclick="setClass(${i},'No atribuible')">No atribuible</button></div>
+   <button class="xbtn xpri" style="width:100%;margin-top:8px" onclick="finishDT(${i})">Finalizar paro</button>`:
+   `<div class="xmuted">Sin paro activo.</div>`}</div>`;
+ }).join('');
+ dtHist.innerHTML=DT.filter(d=>!d.active).slice(0,30).map(d=>`<div class="xmuted">${new Date(d.end).toLocaleString()} Â· ${d.machine} Â· ${d.cause} Â· ${d.classif} Â· ${Math.max(0,Math.round((d.end-d.start)/60000))} min</div>`).join('')||'<div class="xmuted">Sin registros.</div>';
+}
+function setCause(i,v){DT[i].cause=v;saveAll()}
+function setClass(i,v){DT[i].classif=v;saveAll();renderDT()}
+function finishDT(i){
+ if(!DT[i].cause||!DT[i].classif){alert('Selecciona concepto y clasificaciÃ³n');return}
+ const machine=DT[i].machine;
+ localStorage.setItem('dt_ack_'+machine,'1');
+ DT[i].end=Date.now();
+ DT[i].active=false;
+ saveAll();
+ renderDT();
+ showView('machines');
+ setTimeout(()=>document.getElementById('machine_'+safeId(machine))?.scrollIntoView({behavior:'smooth',block:'center'}),50);
+}
+
+function renderPrograma(){
+ programaBox.innerHTML=SCH.length?SCH.map((x,i)=>`<div class="xcard"><h3>${x.machine} Â· ${x.order}</h3><div class="xmuted">${x.product} Â· ${x.qty} cajas</div><div class="xrow" style="margin-top:8px"><button class="xbtn xpri" onclick="startSch(${i})">Iniciar</button><button class="xbtn xsoft" onclick="endSch(${i})">Terminar</button><button class="xbtn xdanger" onclick="delSch(${i})">Borrar</button></div><div class="xmuted" style="margin-top:6px">Estado: ${x.status}</div></div>`).join(''):'<div class="xcard">Sin Ã³rdenes programadas.</div>';
+}
+addSch.onclick=()=>{
+ const machine=prompt('MÃ¡quina','920'); if(!machine)return;
+ const order=prompt('Orden','OT-'+Date.now().toString().slice(-5))||'';
+ const product=prompt('Producto','Caja')||'';
+ const qty=prompt('Cantidad','10000')||'';
+ SCH.unshift({id:'sch_'+Date.now(),machine,order,product,qty,status:'Programada',created:new Date().toISOString()});
+ saveAll();renderPrograma();
+};
+function startSch(i){SCH[i].status='En proceso';SCH[i].started=new Date().toISOString();saveAll();renderPrograma()}
+function endSch(i){SCH[i].status='Terminada';SCH[i].ended=new Date().toISOString();saveAll();renderPrograma()}
+function delSch(i){SCH.splice(i,1);saveAll();renderPrograma()}
+
+function renderSetup(){
+ const M=machines.map(x=>x[0]);
+ setupBox.innerHTML=M.map(m=>{
+   const i=SU.findIndex(x=>x.machine===m&&x.active),x=i>=0?SU[i]:null;
+   return `<div class="xcard"><h3>${m}</h3>${x?`<div class="xmuted">Inicio: ${new Date(x.start).toLocaleTimeString()}</div><button class="xbtn xpri" style="margin-top:8px" onclick="finishSU(${i})">Finalizar Set Up</button>`:`<button class="xbtn xsoft" onclick="startSU('${m.replace(/'/g,"\'")}')">Iniciar Set Up</button>`}</div>`;
+ }).join('');
+ setupHist.innerHTML=SU.filter(x=>!x.active).slice(0,20).map(x=>`<div class="xmuted">${x.machine} Â· ${Math.max(0,Math.round((x.end-x.start)/60000))} min Â· ${new Date(x.end).toLocaleString()}</div>`).join('')||'<div class="xmuted">Sin registros.</div>';
+}
+function startSU(m){if(!SU.find(x=>x.machine===m&&x.active))SU.unshift({id:'su_'+Date.now(),machine:m,start:Date.now(),active:true});saveAll();renderSetup()}
+function finishSU(i){SU[i].end=Date.now();SU[i].active=false;saveAll();renderSetup()}
+
+async function load(){
+ try{
+  const r=await fetch(API+"/api/states",{cache:"no-store"});
+  const d=await r.json();
+  if(!r.ok||!d.ok)throw 0;
+  d.states.forEach(x=>states[x.machine]=x);
+  conn.textContent="API CONECTADA";conn.className="conn ok";
+  renderCore();renderDT();renderPrograma();renderSetup();
+  machines.forEach(m=>prevStates[m[0]]=st(m[0]).state);
+ }catch(e){
+  conn.textContent="SIN API";conn.className="conn";
+ }
+}
+renderCore();renderDT();renderPrograma();renderSetup();load();setInterval(load,5000);
+</script>
+</body>
+</html><div id="conn" class="conn">API...</div>
 </div>
 <div class="tabs">
 <button class="on" data-v="dash">Dashboard</button>
